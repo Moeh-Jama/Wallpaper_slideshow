@@ -4,7 +4,6 @@ User can select how many minutes a wallpaper is allowed to be in the folder befo
 
 <h3>Use</h3>
 <ul>
-  <li>Begin using cmd and enter 'python script.py'</li>
-  <li>Enter folder that contains Wallpapers (desktop background images to be used).</li>
-  <li>Choose duration of time before image changes.</li>
+  <li>access by using cmd</li>
+  <li>will be prompted for address of folder that holds images.</li>
 </ul>
