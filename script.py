@@ -4,88 +4,220 @@ import time
 import random as random
 import ctypes
 from ctypes import wintypes
+import sys
 
-print('Only bmp, jpg, and png files used.')
-print('Do not add double \\\\ only keep it like so \\')
-temp = input('Enter location of Wallpapers!: ')
-number_of_goes = '0'
-while  number_of_goes.isalpha() or int(number_of_goes) < 1:
-	number_of_goes = input('Please enter the wait time before the wallpaper changes\nIn minutes: ')
+current_directory = os.path.dirname(os.path.realpath(__file__))
 
-iterate = int(number_of_goes)
-string = ''
-i = 0
-while i < len(temp):
-	if temp[i] != temp[-1] and (temp[i] == "\\" and temp[i+1] != "\\"):
-		string+="\\"
+def checkIfAddressExists(path):
+	system_registry = 'master.txt'
+	if system_registry in os.listdir(path):
+		return True
 	else:
-		string+=temp[i]
-	i+=1
-if string[-1] != "\\":
-	string+="\\"
-print('Current Directory is: |'+string+'|')
+		return False
 
 
-wallpaper_folder = string
+def add_gallery(gallery_name):
+	directory = current_directory+"\master.txt"
+	files = os.listdir(current_directory)
 
-my_pics = []
+	if "master.txt" in files:
+		gallery_list = []
+		with open(directory, 'r') as f_obj:
+			gallery_list = f_obj.readlines()
+			f_obj.close()
+		with open(directory, 'w') as f:
+			for i in gallery_list:
+				f.write(i)
+			f.write(gallery_name+"\n")
+			f.close()
+		print('Added', gallery_name, 'to list of galleries available')
+	else:
+		with open(directory, 'w') as f_obj:
+			f_obj.write(gallery_name+"\n")
+		print('Added', gallery_name, 'to list of galleries available')
 
-def check_again():
-	temp_files = os.listdir(wallpaper_folder)
-	del my_pics [:]
-	for i in temp_files:
-		if i[-3:] == 'bmp' or i[-3:] == 'jpg' or i[-3:] == 'png':
-			my_pics.append(i)
-	print(my_pics)
 
+def address_exists(address):
+	if os.path.isdir(address):
+		return True
+	else:
+		return False
+
+
+def contains_images(gallery_address):
+	files = os.listdir(gallery_address)
+	for i in files:
+		if '.bmp' in i or '.jpg' in i or '.jpeg' in i or '.png' in i:
+			return True
+	return False
+
+
+def develop_galleries():
+	while True:
+		gallery_response = input('Enter gallery address: ')
+		if address_exists(gallery_response.strip()) and contains_images(gallery_response.strip()):
+			#add gallery
+			add_gallery(gallery_response.strip())
+			break
+		else:
+			print('Please enter an adress that exists & contains images')
+
+
+def folderList(address):
+	return os.listdir(address)
+
+
+def listOfGalleries():
+	list_of_galleries = []
+	with open(current_directory+"\master.txt", 'r') as galleries:
+		folders = galleries.readlines()
+		for gallery in folders:
+			s = gallery[:-1]
+			list_of_galleries.append(s+"\\")
+	return list_of_galleries
+
+
+def choose_slideshow():
+	#get list of addresses
+	galleries = listOfGalleries()
+	print('\n-----------Galleries-----------\n')
+	for index in range(0, len(galleries)):
+		print("["+str(index+1)+"]", galleries[index].split('\\')[-2])
+
+
+	#get integer response from user
+	while True:
+		print('-------PLEASE CHOOSE ONE OF THE GALLERIES ABOVE-------')
+		response = input('Enter index number to choose: ')
+		response = response.strip()
+		if not (response.isalpha()):
+			if not ( int(response)-1 > len(galleries) or int(response)-1 < 0):
+				choosen_gallery_address = galleries[int(response) - 1]
+				return choosen_gallery_address
+			else:
+				print('Please choose within the range provided', 1,"<->",len(galleries))
+		else:
+			print('please only enter numbers')
+
+
+def choose_play_time():
+	while True:
+		response = input('Enter play time of each wallpaper: ')
+		response = response.strip()
+		if not response.isalpha():
+			return int(response)*60
+
+
+def play_slideshow(gallery, transistion_time):
+	user_response = ''
+	current_time = time.time()
+	print('Press [q] to quit\n[n] to skip current wallpaper.\nPress [b] to Back to Menu')
+	while True and user_response.strip() != 'q':
+		user_response = str(msvcrt.getwch())
+		if user_response == 'n' or  time.time() - current_time > transistion_time:
+			current_time = change_image(gallery)
+			print('Press [q] to quit\n[n] to skip current wallpaper.\nPress [b] to Back to Menu')
+		elif user_response.strip().lower() == 'q':
+			return 'Stop'
+		elif user_response.strip().lower() == 'c':
+			return 'Change Library'
+		elif user_response.strip().lower() =='a':
+			return 'Add gallery'
 
 
 used = []
-def random_mizer():
-	check_again()
-	print(my_pics)
-	size = len(my_pics)
-	use = ''
-	found = False
-	if len(used) == len(my_pics):
-		print('---')
-		del used[:]
-	while found == False:
-		if my_pics[random.randint(0,size-1)] not in used:
-			use = my_pics[random.randint(0,size-1)]
-			used.append(use)
-			found = True
 
-	return use
 
-twenty_five = iterate*60
-now = time.time()
-print(now)
-while True:
-	result= False
-	test_a = time.time()
-	if msvcrt.kbhit():
-		inp = msvcrt.getch()
-		if inp != '':
-			result = True
-	elif time.time() - test_a > 5:
-		print(':p')
-	if time.time() - now> twenty_five or result == True:
-		wallpaper_bmp = random_mizer()
-		print('Current picture: '+wallpaper_bmp)
-		drive = wallpaper_folder
-		image = wallpaper_bmp
-		image_path = os.path.join(drive, image)
+def random_mizer(address, pictures_used):
+	print('used', used)
+	images = folderList(address)
+	new_images = []
+	for i in images:
+		if i not in used:
+			new_images.append(i)
+	if len(new_images) == 0:
+		del used [:]
+		new_images = images
+	pictures_used.append(new_images.pop())
+	return pictures_used[-1]
 
-		SPI_SETDESKWALLPAPER  = 0x0014
-		SPIF_UPDATEINIFILE    = 0x0001
-		SPIF_SENDWININICHANGE = 0x0002
 
-		user32 = ctypes.WinDLL('user32')
-		SystemParametersInfo = user32.SystemParametersInfoW
-		SystemParametersInfo.argtypes = ctypes.c_uint,ctypes.c_uint,ctypes.c_void_p,ctypes.c_uint
-		SystemParametersInfo.restype = wintypes.BOOL
-		print(SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, image_path, SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE))
-		print('End')
-		now = time.time()
-		print('Press any key to skip wallpaper\nif not then do not press anything.')
+def change_image(gallery):
+	wallpaper_bmp = random_mizer(gallery, used)
+	drive = gallery
+	image = wallpaper_bmp
+	image_path = os.path.join(drive, image)
+
+	SPI_SETDESKWALLPAPER  = 0x0014
+	SPIF_UPDATEINIFILE    = 0x0001
+	SPIF_SENDWININICHANGE = 0x0002
+
+	user32 = ctypes.WinDLL('user32')
+	SystemParametersInfo = user32.SystemParametersInfoW
+	SystemParametersInfo.argtypes = ctypes.c_uint,ctypes.c_uint,ctypes.c_void_p,ctypes.c_uint
+	SystemParametersInfo.restype = wintypes.BOOL
+	print(SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, image_path, SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE))
+	now = time.time()
+	return now
+
+
+def run_program():
+	gallery = choose_slideshow()
+	time = choose_play_time()
+	reply = play_slideshow(gallery, time)
+	return reply
+
+
+def menu():
+	options = ['slideshow', 'Add Gallery', 'Quit']
+	for option in range(0, len(options)):
+		print("["+str(option+1)+"]",options[option])
+	choice = 1
+	while True:
+		print('Choose an option by enter')
+		response = input('Enter index: ')
+		if not response.isalpha():
+			if not (int(response) - 1 > len(options) or int(response)-1 <0):
+				choice = int(response)-1
+				break
+	if choice == 1:
+		develop_galleries()
+		return True
+	elif choice == 0:
+		return True
+	elif choice == 2:
+		return False
+
+
+def updateMaster():
+	galleries = listOfGalleries()
+	noneValidAddress = False
+	listOfValidAddresses = []
+	for gallery in galleries:
+		if not os.path.isdir(gallery):
+			noneValidAddress = True
+		else:
+			listOfValidAddresses.append(gallery)
+	if(noneValidAddress):
+		with open(current_directory+"\master.txt", 'w') as f:
+			for i in  listOfValidAddresses:
+				f.write(i+"\n")
+
+
+
+def system():
+	new_system = checkIfAddressExists(current_directory)
+	if new_system == False:
+		print('developing address...')
+		develop_galleries()
+	else:
+		updateMaster()
+	returned = menu()
+	if not returned == False:
+		user_response = run_program()
+		if user_response == 'Change Library':
+			#loop over again
+			system()
+
+
+system()
