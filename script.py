@@ -133,11 +133,13 @@ def random_mizer(address, pictures_used):
 	images = folderList(address)
 	new_images = []
 	for i in images:
-		if i not in used:
+		if i not in used and '.jpeg' in i or '.png' in i or '.jpeg' in i or '.bmp' in i:
 			new_images.append(i)
 	if len(new_images) == 0:
 		del used [:]
-		new_images = images
+		for i in images:
+			if '.jpeg' in i or '.png' in i or '.jpg' in i or '.bmp' in i:
+				new_images.append(i)
 	pictures_used.append(new_images.pop())
 	return pictures_used[-1]
 
