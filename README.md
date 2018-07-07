@@ -16,5 +16,5 @@
 <li>During your first try you will be asked to enter the address of a folder that you want to display images from</li>
 <li>Then asked whether to begin slideshow or add more galleries</li>
 <li>Once you chose the gallery enter how many minutes each background should display for</li>
-<li>Let the program do the rest, or press  q to quite</li>
+<li>Let the program do the rest, or press  q to quit</li>
 </ul>  
