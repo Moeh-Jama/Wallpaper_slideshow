@@ -6,18 +6,27 @@ import ctypes
 from ctypes import wintypes
 import sys
 
+
+class Image():
+	
+	def __init__(self, image_path):
+		self.image_path = image_path
+		self.image_name = self.image_path.split("\\")[-1].title()
+		self.selected = False
+	
+	def has_image_selected(self):
+		return self.selected
+
+
 current_directory = os.path.dirname(os.path.realpath(__file__))
 
 def checkIfAddressExists(path):
 	system_registry = 'master.txt'
-	if system_registry in os.listdir(path):
-		return True
-	else:
-		return False
+	return system_registry in os.listdir(path)
 
 
 def add_gallery(gallery_name):
-	directory = current_directory+"\master.txt"
+	directory = current_directory+"\master.txt"	#append file location into master.txt 
 	files = os.listdir(current_directory)
 
 	if "master.txt" in files:
@@ -34,20 +43,18 @@ def add_gallery(gallery_name):
 	else:
 		with open(directory, 'w') as f_obj:
 			f_obj.write(gallery_name+"\n")
+		print('...created master.txt file for organising gallery locations')
 		print('Added', gallery_name, 'to list of galleries available')
 
 
 def address_exists(address):
-	if os.path.isdir(address):
-		return True
-	else:
-		return False
+	return os.path.isdir(address)
 
 
 def contains_images(gallery_address):
 	files = os.listdir(gallery_address)
-	for i in files:
-		if '.bmp' in i or '.jpg' in i or '.jpeg' in i or '.png' in i:
+	for file in files:
+		if is_image_file_extension(file):
 			return True
 	return False
 
@@ -111,36 +118,42 @@ def choose_play_time():
 def play_slideshow(gallery, transistion_time):
 	user_response = ''
 	current_time = time.time()
-	print('Press [q] to quit\n[n] to skip current wallpaper.\nPress [b] to Back to Menu')
+	print('Press [q] to quit\n[n] to skip current wallpaper.\nPress [b] to return back to menu')
 	while True and user_response.strip() != 'q':
-		user_response = str(msvcrt.getwch())
+		user_response = str(msvcrt.getwch()).strip().lower()
 		if user_response == 'n' or  time.time() - current_time > transistion_time:
 			current_time = change_image(gallery)
 			print('Press [q] to quit\n[n] to skip current wallpaper.\nPress [b] to Back to Menu')
-		elif user_response.strip().lower() == 'q':
+		elif user_response == 'q':
 			return 'Stop'
-		elif user_response.strip().lower() == 'c':
+		elif user_response == 'c':
 			return 'Change Library'
-		elif user_response.strip().lower() =='a':
+		elif user_response =='a':
 			return 'Add gallery'
 
 
 used = []
 
+def is_image_file_extension(filepath):
+	file_extension = filepath.split(".")[-1].strip().lower()
+	if file_extension in 'jpeg,png,jpg,bmp':
+		return True
 
 def random_mizer(address, pictures_used):
 	print('used', used)
 	images = folderList(address)
 	new_images = []
-	for i in images:
-		if i not in used and '.jpeg' in i or '.png' in i or '.jpeg' in i or '.bmp' in i:
-			new_images.append(i)
-	if len(new_images) == 0:
+	for image in images:
+		if image not in used and is_image_file_extension(image):
+			new_images.append(image)
+	if len(new_images) == 0:	#all images used
 		del used [:]
-		for i in images:
-			if '.jpeg' in i or '.png' in i or '.jpg' in i or '.bmp' in i:
+		for image in images:
+			if is_image_file_extension(image):
 				new_images.append(i)
 	pictures_used.append(new_images.pop())
+	
+	#TODO add shuffle functionality after all images used.
 	return pictures_used[-1]
 
 
